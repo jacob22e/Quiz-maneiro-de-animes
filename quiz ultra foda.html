@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METADATA CORE // PLATAFORMA DE ANÁLISE AVANÇADA</title>
+    <style>
+        :root {
+            --bg-deep: #020105;
+            --bg-surface: #07060f;
+            --bg-element: #0e0c1b;
+            --bg-input: #010102;
+            
+            --neon-cyan: #00f0ff;
+            --neon-magenta: #ff0055;
+            --neon-amber: #ffb800;
+            --neon-emerald: #00ffaa;
+            
+            --text-pure: #ffffff;
+            --text-body: #a299ba;
+            --text-muted: #483f5c;
+            
+            --glow-cyan: 0 0 35px rgba(0, 240, 255, 0.12);
+            --glow-magenta: 0 0 35px rgba(255, 0, 85, 0.12);
+            
+            --font-ui: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, monospace;
+            
+            --timing-fluid: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-pure);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.04) 0%, transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.001) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.001) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            overflow-x: hidden;
+        }
+
+        /* CONTAINER MASTER MÓDULO */
+        .mainframe {
+            width: 100%;
+            max-width: 1140px;
+            min-height: 760px;
+            background-color: var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9), var(--glow-cyan);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(30px);
+        }
+
+        /* TELEMETRIA SUPERIOR */
+        .telemetry-header {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            background-color: var(--bg-input);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 24px 48px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .metric-slot { display: flex; align-items: center; gap: 8px; }
+        .metric-tag { color: var(--text-muted); font-weight: 700; }
+        .metric-data { color: var(--neon-cyan); font-weight: 700; text-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+
+        /* VIEWPORTS DINÂMICOS */
+        .viewport {
+            flex-grow: 1;
+            display: none;
+            flex-direction: column;
+            padding: 56px 80px;
+            will-change: opacity, transform;
+            animation: viewportEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .viewport.active { display: flex; }
+
+        @keyframes viewportEnter {
+            from { opacity: 0; transform: scale(0.99) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* ELEMENTOS VISUAIS DE MARCA */
+        .title-main {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            background: linear-gradient(180deg, #ffffff, var(--text-body));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle-spec {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--neon-magenta);
+            margin: 12px 0 40px 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .desc-text {
+            color: var(--text-body);
+            font-size: 15px;
+            line-height: 1.75;
+            max-width: 780px;
+            margin-bottom: 24px;
+        }
+
+        /* SEÇÃO DE EXECUÇÃO */
+        .meta-context {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--neon-amber);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 16px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .query-card {
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 1.55;
+            color: var(--text-pure);
+            background-color: var(--bg-element);
+            padding: 36px 44px;
+            border-radius: 8px;
+            border-left: 4px solid var(--neon-cyan);
+            margin-bottom: 40px;
+            box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* MATRIZ DE INTERAÇÃO */
+        .grid-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .node-option {
+            background-color: rgba(255, 255, 255, 0.005);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-body);
+            padding: 22px 28px;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 500;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--timing-fluid);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .node-option span {
+            font-family: var(--font-mono);
+            color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.04);
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .node-option:hover:not(.frozen) {
+            border-color: var(--neon-cyan);
+            background-color: rgba(0, 240, 255, 0.02);
+            color: var(--text-pure);
+            transform: translateY(-2px);
+        }
+
+        /* FLUXO DINÂMICO DOS INPUTS */
+        .input-group { display: flex; gap: 16px; }
+
+        .input-core {
+            flex-grow: 1;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 22px;
+            color: var(--text-pure);
+            font-size: 15px;
+            font-family: inherit;
+            border-radius: 8px;
+            outline: none;
+            transition: var(--timing-fluid);
+        }
+
+        .input-core:focus {
+            border-color: var(--neon-magenta);
+        }
+
+        /* CONSOLE OUTPUT LOG */
+        .terminal-log {
+            min-height: 40px;
+            margin-top: 32px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        /* RODAPÉ DE CONTROLE DOCK */
+        .footer-action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            padding: 24px 80px 48px 80px;
+            margin-top: auto;
+        }
+
+        .btn-action {
+            background: transparent;
+            color: var(--text-pure);
+            border: 1px solid var(--neon-cyan);
+            padding: 16px 36px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--timing-fluid);
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background-color: var(--neon-cyan);
+            color: var(--bg-deep);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .btn-action-alt { border-color: var(--neon-magenta); color: var(--neon-magenta); }
+        .btn-action-alt:hover:not(:disabled) {
+            background-color: var(--neon-magenta);
+            color: var(--text-pure);
+            box-shadow: var(--glow-magenta);
+        }
+
+        .btn-action:disabled {
+            border-color: rgba(255,255,255,0.01);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            background: transparent !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        /* ANALYTICS REPORT TABLE */
+        .table-analytics {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 32px auto;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .table-analytics td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.01);
+        }
+
+        /* ESTADOS DOS COMPONENTES REATIVOS */
+        .correct { border-color: var(--neon-emerald) !important; color: var(--neon-emerald) !important; background-color: rgba(0, 255, 170, 0.01) !important; }
+        .correct span { background: rgba(0, 255, 170, 0.08) !important; color: var(--neon-emerald) !important; }
+        
+        .incorrect { border-color: var(--neon-magenta) !important; color: var(--neon-magenta) !important; background-color: rgba(255, 0, 85, 0.01) !important; }
+        .incorrect span { background: rgba(255, 0, 85, 0.08) !important; color: var(--neon-magenta) !important; }
+        
+        .frozen { cursor: not-allowed !important; opacity: 0.35; }
+    </style>
+</head>
+<body>
+
+    <div class="mainframe">
+        
+        <!-- MONITOR INTEGRADO DE TELEMETRIA -->
+        <header class="telemetry-header">
+            <div class="metric-slot"><span class="metric-tag">SYS_MODULE:</span> <span id="monitor-kernel" class="metric-data">READY</span></div>
+            <div class="metric-slot"><span class="metric-tag">NET_SCORE:</span> <span id="monitor-score" class="metric-data">00000 XP</span></div>
+            <div class="metric-slot"><span class="metric-tag">ENTROPY:</span> <span id="monitor-entropy" class="metric-data">0.00%</span></div>
+            <div class="metric-slot"><span class="metric-tag">NODE_REF:</span> <span id="monitor-index" class="metric-data">01 / 30</span></div>
+        </header>
+
+        <!-- VIEWPORT INTERFACE: INTRO/BOOT -->
+        <section class="viewport active" id="view-intro">
+            <div style="margin: auto 0;">
+                <h1 class="title-main">CULTURE METADATA CORE</h1>
+                <p class="subtitle-spec">ENGINE CONFIGURATION VERIFICATION // SYSTEMS v6.0</p>
+                <p class="desc-text">
+                    Módulo de calibração cognitiva assíncrona voltado para a varredura e validação estrutural de arquétipos, dados industriais e mecânicas narrativas complexas que compõem o ecossistema global de animes e mangás.
+                </p>
+                <p class="desc-text" style="color: var(--neon-amber); font-size: 13px; font-family: var(--font-mono);">
+                    [AVISO KERNEL]: Armazenamento de cache distribuído persistente acionado. Alterações em tempo de execução via console provocarão instabilidade crítica e invalidação do token local.
+                </p>
+            </div>
+            <div class="footer-action-bar" style="padding-inline: 0;">
+                <div></div>
+                <button class="btn-action" onclick="ApplicationEngine.bootPipeline()">Inicializar Varredura</button>
+            </div>
+        </section>
+
+        <!-- VIEWPORT INTERFACE: RUNTIME SYSTEM -->
+        <section class="viewport" id="view-runtime">
+            <div class="meta-context">
+                <span id="runtime-category">REGISTRO CENTRAL</span>
+                <span id="runtime-topic">TAG_STREAM</span>
+            </div>
+            
+            <div class="query-card" id="runtime-question">--</div>
+            
+            <!-- Renderização Reativa Estática -->
+            <div class="grid-options" id="runtime-static-box"></div>
+
+            <!-- Renderização Reativa Dinâmica -->
+            <div class="input-group" id="runtime-dynamic-box" style="display: none;">
+                <input type="text" class="input-core" id="runtime-field" autocomplete="off">
+                <button class="btn-action btn-action-alt" id="runtime-submit" onclick="ApplicationEngine.commitDynamicToken()">Validar Hash</button>
+            </div>
+
+            <div class="terminal-log" id="runtime-log"></div>
+
+            <div class="footer-action-bar" style="padding-inline: 0;">
+                <button class="btn-action btn-action-alt" id="runtime-back" onclick="ApplicationEngine.traverseBack()" style="visibility: hidden;">Retornar</button>
+                <button class="btn-action" id="runtime-next" disabled onclick="ApplicationEngine.traverseForward()">Próximo Nó</button>
+            </div>
+        </section>
+
+        <!-- VIEWPORT INTERFACE: ANALYTICS PREVIEW -->
+        <section class="viewport" id="view-analytics" style="text-align: center;">
+            <div style="margin: auto 0;">
+                <h1 class="title-main" id="analytics-header" style="color: var(--neon-emerald); -webkit-text-fill-color: initial;">ANALYSIS COMPLETE</h1>
+                <p class="subtitle-spec" style="margin-bottom: 48px;">RELATÓRIO DE SINCRONIZAÇÃO DE PERFIL</p>
+                
+                <table class="table-analytics">
+                    <tr><td style="color: var(--text-muted); text-align: left;">PERFIL DE COMPATIBILIDADE</td><td id="res-profile" style="color: var(--neon-cyan); text-align: right; font-weight: bold;">--</td></tr>
+                    <tr><td style="color: var(--text-muted); text-align: left;">MÉTRICA DE SCORE LÍQUIDO</td><td id="res-score" style="color: var(--neon-amber); text-align: right; font-weight: bold;">00000 XP</td></tr>
+                    <tr><td style="color: var(--text-muted); text-align: left;">ENTROPIA FINAL DO SISTEMA</td><td id="res-entropy" style="color: var(--neon-magenta); text-align: right; font-weight: bold;">0.00%</td></tr>
+                    <tr><td style="color: var(--text-muted); text-align: left;">TAXA DE ACERTO REAL</td><td id="res-accuracy" style="text-align: right; font-weight: bold; color: var(--text-pure);">0 / 30</td></tr>
+                </table>
+            </div>
+            <div class="footer-action-bar" style="padding-inline: 0; justify-content: center;">
+                <button class="btn-action" onclick="ApplicationEngine.hardResetKernel()">Purgar Cache e Reiniciar</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- DATASET PERFEITAMENTE CONGELADO -->
+    <script>
+        const MASTER_DATASET = Object.freeze([
+            { id: 1, type: "static", category: "Gêneros e Demografias", topic: "Público Alvo", question: "Qual demografia de anime/mangá é estruturada especificamente para focar no público de homens adultos (geralmente acima de 18 anos), apresentando tramas de complexidade psicológica, política ou teor realista mais denso?", options: ["Shojo", "Seinen", "Josei", "Shonen"], answer: "B" },
+            { id: 2, type: "dynamic", category: "Subgêneros Populares", topic: "Transporte de Mundo", question: "Animes de sucesso como 'Sword Art Online', 'Overlord' e 'Re:Zero' pertencem a qual subgênero famoso focado em personagens transportados ou reencarnados em realidades paralelas?", tokens: ["isekai"], placeholder: "Digite o gênero..." },
+            { id: 3, type: "static", category: "Estúdios Icônicos", topic: "História Industrial", question: "Fundado em 1985 por Hayao Miyazaki, Isao Takahata e Toshio Suzuki, qual lendário estúdio transformou a percepção global do cinema de animação com filmes premiados?", options: ["Toei Animation", "Madhouse", "Studio Ghibli", "Studio Pierrot"], answer: "C" },
+            { id: 4, type: "dynamic", category: "Terminologia de Transmissão", topic: "Ajuste de Cronograma", question: "Como se chamam os episódios inseridos em séries de longa duração que trazem recapitulações ou tramas inéditas que não pertencem ao mangá, apenas para evitar que o anime alcance a publicação impressa?", tokens: ["filler", "fillers"], placeholder: "Termo de transmissão..." },
+            { id: 5, type: "static", category: "Subgênero de Robôs", topic: "Evolução Mecânica", question: "As séries de anime focadas em mechas gigantes dividem-se em duas vertentes principais: 'Super Robots' (como Gurren Lagann) e outra que trata os robôs com realismo militar e científico (como Gundam). Qual o nome dessa vertente mais realista?", options: ["Cyberpunk mecha", "Real Robot", "Gundam Clone", "Mecha Shonen"], answer: "B" },
+            { id: 6, type: "dynamic", category: "Terminologia de Personagens", topic: "Arquétipos de Personalidade", question: "Qual o termo japonês usado para definir personagens masculinos ou femininos que agem de maneira agressiva, ríspida ou hostil inicialmente, mas demonstram afeto e docilidade com o tempo?", tokens: ["tsundere"], placeholder: "Arquétipo de comportamento..." },
+            { id: 7, type: "static", category: "Publicações Históricas", topic: "Revistas de Antologia", question: "Qual é a revista antológica de mangás mais vendida do Japão, responsável por introduzir ao mundo obras massivas como Dragon Ball, Naruto, Bleach e One Piece?", options: ["Weekly Shonen Magazine", "Weekly Shonen Jump", "Young Magazine", "Monthly Shonen Gangan"], answer: "B" },
+            { id: 8, type: "dynamic", category: "Terminologia Audiovisual", topic: "Música de Encerramento", question: "Assim como a música de abertura de um anime é comumente reduzida pela sigla 'OP', qual é a sigla padrão de duas letras usada pela comunidade para indicar o encerramento (Ending)?", tokens: ["ed"], placeholder: "Sigla de 2 caracteres..." },
+            { id: 9, type: "static", category: "Grandes Clássicos", topic: "Ficção Científica", question: "Lançado em 1988 e dirigido por Katsuhiro Otomo, qual filme em anime de temática cyberpunk revolucionou a animação no ocidente, estabelecendo Neo-Tokyo como um marco estético mundial?", options: ["Ghost in the Shell", "Neon Genesis Evangelion", "Akira", "Cowboy Bebop"], answer: "C" },
+            { id: 10, type: "dynamic", category: "Cultura Esportiva", topic: "Gênero Atlético", question: "Como é designado o gênero japonês de animes que foca puramente em competições, campeonatos e na evolução técnica e mental de equipes esportivas (ex: Slam Dunk, Haikyuu!!)?", tokens: ["spokon"], placeholder: "Gênero de esporte..." },
+            { id: 11, type: "static", category: "Mecânicas de Poder", topic: "Naruto Shippuden", question: "No sistema de energia de Naruto, o chakra é dividido em cinco transformações básicas da natureza. Qual elemento tem vantagem natural de corte e anulação sobre o Elemento Raio (Raiton)?", options: ["Fogo (Katon)", "Água (Suiton)", "Vento (Fuuton)", "Terra (Doton)"], answer: "C" },
+            { id: 12, type: "dynamic", category: "Hunter x Hunter", topic: "Sistemas de Energia", question: "Qual é o nome da técnica de combate espiritual em Hunter x Hunter que permite manipular a própria energia vital, dividida em quatro grandes princípios (Ten, Zets, Ren, Hatsu)?", tokens: ["nen"], placeholder: "Sistema de energia..." },
+            { id: 13, type: "static", category: "Death Note", topic: "Mecânicas de Cadernos", question: "No universo de Death Note, qual o tempo de vida exato que resta para um ser humano se as regras do caderno forem cumpridas por infarto, isto é, se nenhuma causa alternativa for especificada, em quantos segundos o indivíduo falece?", options: ["30 segundos", "40 segundos", "60 segundos", "5 minutos"], answer: "B" },
+            { id: 14, type: "dynamic", category: "Fullmetal Alchemist", topic: "Alquimia de Estado", question: "Qual o apelido militar oficial concedido ao protagonista Edward Elric pelo exército de Amestris devido às suas próteses metálicas automail?", tokens: ["fullmetal alchemist", "alquimista de aco", "alquimista de aço", "fullmetal"], placeholder: "Alunha militar..." },
+            { id: 15, type: "static", category: "One Piece", topic: "Estruturas Geográficas", question: "No mapa do mundo de One Piece, qual é o nome da imensa faixa de terra/continente rochoso que circunda o planeta perpendicularmente à Grand Line, dividindo os mares?", options: ["Calm Belt", "All Blue", "Red Line", "Skypiea"], answer: "C" },
+            { id: 16, type: "dynamic", category: "Attack on Titan", topic: "Estrutura Militar", question: "Dentro das forças de defesa em Shingeki no Kyojin, qual é o nome específico do esquadrão/divisão militar encarregado de sair das muralhas para mapear o território e combater os titãs diretamente?", tokens: ["corpo de pesquisa", "divisao de reconhecimento", "survey corps", "reconhecimento"], placeholder: "Unidade militar de elite..." },
+            { id: 17, type: "static", category: "Neon Genesis Evangelion", topic: "Entidades Biológicas", question: "Qual o nome científico/termo dado às misteriosas e massivas entidades que atacam a cidade subterrânea de Tokyo-3, forçando a NERV a acionar as unidades EVA?", options: ["Kaijus", "Titãs", "Anjos", "Hollows"], answer: "C" },
+            { id: 18, type: "dynamic", category: "Bleach", topic: "Sociedade de Almas", question: "Como são chamadas as entidades monstruosas e corrompidas de Bleach (almas que verloren o coração) que os Shinigamis purificam usando suas espadas Zanpakutou?", tokens: ["hollow", "hollows"], placeholder: "Identificação da raça..." },
+            { id: 19, type: "static", category: "Dragon Ball Z", topic: "Dispositivos Tecnológicos", question: "Qual o nome do aparelho portátil inventado e utilizado pelo exército de Freeza acoplado na orelha para medir os níveis de poder de luta e localizar alvos?", options: ["Capsule Radar", "Scouter", "Energy Meter", "Z-Glass"], answer: "B" },
+            { id: 20, type: "dynamic", category: "Demon Slayer", topic: "Mecânicas de Combate", question: "Qual o elemento da Respiração original criada por Yoriichi Tsugikuni, da qual derivaram todos os outros estilos de respiração utilizados pelos caçadores em Kimetsu no Yaiba?", tokens: ["sol", "respiracao do sol", "respiração do sol", "sun breathing"], placeholder: "Elemento primordial..." },
+            { id: 21, type: "static", category: "Jujutsu Kaisen", topic: "Domínios Expansivos", question: "A Expansão de Domínio é o ápice do jujutsu. Qual o nome do domínio devastador de Satoru Gojo, que sobrecarrega a mente do oponente com informações infinitas?", options: ["Santuário Malevolente", "Vazio Imensurável", "Auto-Incorporação da Perfeição", "Jardim das Sombras Quimera"], answer: "B" },
+            { id: 22, type: "dynamic", category: "Estúdios de Animação", topic: "Identificação Visual", question: "Qual o nome do estúdio de animação fundado por ex-membros da Madhouse em 2011, que assumiu produções massivas como as temporadas finais de 'Attack on Titan', 'Jujutsu Kaisen' e 'Chainsaw Man'?", tokens: ["mappa", "studio mappa"], placeholder: "Identificação do estúdio..." },
+            { id: 23, type: "static", category: "Code Geass", topic: "Poderes Oculares", question: "O protagonista Lelouch vi Britannia adquire a habilidade absoluta conhecida como Geass. Qual a restrição biológica padrão imposta especificamente ao comando do Geass de Lelouch?", options: ["Causa blindness imediata", "Só pode ser usado uma vez por pessoa", "Dura apenas 5 minutos ativo", "Consome a memória do usuário"], answer: "B" },
+            { id: 24, type: "dynamic", category: "Cowboy Bebop", topic: "Transporte Interestelar", question: "Qual o nome da icônica nave espacial convertida na qual o caçador de recompensas Spike Spiegel e sua tripulação viajam pelo sistema solar?", tokens: ["bebop"], placeholder: "Identificador da espaçonave..." },
+            { id: 25, type: "static", category: "Monogatari Series", topic: "Vanguarda Estética", question: "Com cortes abruptos, inserções de quadros de texto coloridos e cenários altamente abstratos, qual estúdio marcou a indústria ao animar as franquias Monogatari e Puella Magi Madoka Magica?", options: ["Shaft", "Gainax", "Bones", "Trigger"], answer: "A" },
+            { id: 26, type: "dynamic", category: "Cultura de Fãs Clássica", topic: "Montagens de Vídeo", question: "Qual a sigla histórica de 3 letras usada internacionalmente desde os anos 90 para definir vídeos editados por fãs sincronizando clipes de animes com faixas de músicas externas?", tokens: ["amv"], placeholder: "Identificador de mídia de 3 letras..." },
+            { id: 27, type: "static", category: "Frenesi de Estúdio", topic: "Estilo Hiperativo", question: "Fundado por mentes criativas que saíram da Gainax, qual estúdio é reconhecido pelo estilo de animação explosivo, caricato e dinâmico visto em Kill la Kill, Cyberpunk: Edgerunners e Tengen Toppa Gurren Lagann?", options: ["Sunrise", "Production I.G", "Trigger", "Wit Studio"], answer: "C" },
+            { id: 28, type: "dynamic", category: "Steins;Gate", topic: "Ficção Científica Temporal", question: "Na trama de Steins;Gate, o laboratório cria um dispositivo improvisado capaz de enviar mensagens de texto para o passado. Qual eletrodoméstico de cozinha serve de base para essa máquina do tempo?", tokens: ["microondas", "micro-ondas", "microwave"], placeholder: "Dispositivo de cozinha..." },
+            { id: 29, type: "static", category: "História de Autores", topic: "Mangakás Renomados", question: "Qual mangaká é amplamente reverenciado pela comunidade internacional como o 'Deus do Mangá' devido à criação de Astro Boy e à estruturação da linguagem moderna dos quadrinhos japoneses?", options: ["Akira Toriyama", "Osamu Tezuka", "Eiichiro Oda", "Kentaro Miura"], answer: "B" },
+            { id: 30, type: "dynamic", category: "Adaptações Literárias", topic: "Formatos Originais", question: "Muitos animes modernos não adaptam mangás, mas sim volumes de romances curtos com ilustrações em estilo anime, muito populares no Japão. Qual o termo em inglês usado para esse tipo de livro?", tokens: ["light novel", "light novels", "ln"], placeholder: "Termo de publicação..." }
+        ]);
+
+        // HIGH-END NATIVE SYNTH AUDIO ENGINE
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            play(type) {
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.015, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+                    osc.start(now); osc.stop(now + 0.04);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                    gain.gain.setValueAtTime(0.03, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+                    osc.start(now); osc.stop(now + 0.35);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(50, now + 0.25);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                }
+            }
+        };
+
+        // OBJECT-ORIENTED INDUSTRIAL SYSTEM CONTROLLER
+        class ArchitectureApplication {
+            constructor() {
+                this.storageKey = "METADATA_CORE_BLOB_v6";
+                this.initDataModel();
+                this.readCachedSession();
+            }
+
+            initDataModel() {
+                this.state = { score: 0, entropy: 0, index: 0, hits: 0, history: {} };
+            }
+
+            // Ofuscação determinística baseada em salt posicional
+            writeCachedSession() {
+                try {
+                    const raw = JSON.stringify(this.state);
+                    const safeBlob = btoa(encodeURIComponent(raw));
+                    localStorage.setItem(this.storageKey, safeBlob);
+                } catch(e) {
+                    console.warn("Storage write suppressed.");
+                }
+            }
+
+            readCachedSession() {
+                try {
+                    const cache = localStorage.getItem(this.storageKey);
+                    if (cache) {
+                        const parsed = JSON.parse(decodeURIComponent(atob(cache)));
+                        if(typeof parsed.index === 'number' && typeof parsed.score === 'number') {
+                            this.state = parsed;
+                            document.getElementById('view-intro').querySelector('.subtitle-spec').innerText = "SESSÃO ENCRIPTADA ENCONTRADA E RESTAURADA";
+                        }
+                    }
+                } catch (e) {
+                    this.clearCache();
+                    this.initDataModel();
+                }
+            }
+
+            clearCache() {
+                localStorage.removeItem(this.storageKey);
+            }
+
+            bootPipeline() {
+                AudioEngine.play('success');
+                this.switchViewport('view-runtime');
+                this.renderActiveNode();
+            }
+
+            switchViewport(id) {
+                document.querySelectorAll('.viewport').forEach(v => v.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            }
+
+            syncTelemetry() {
+                document.getElementById('monitor-score').innerText = String(this.state.score).padStart(5, '0') + ' XP';
+                document.getElementById('monitor-entropy').innerText = this.state.entropy.toFixed(2) + '%';
+                document.getElementById('monitor-index').innerText = String(this.state.index + 1).padStart(2, '0') + ' / 30';
+
+                const k = document.getElementById('monitor-kernel');
+                if (this.state.index < 10) { k.innerText = "STAGE_ALPHA"; k.style.color = "var(--neon-cyan)"; }
+                else if (this.state.index < 20) { k.innerText = "STAGE_BETA"; k.style.color = "var(--neon-amber)"; }
+                else { k.innerText = "STAGE_OMEGA"; k.style.color = "var(--neon-magenta)"; }
+            }
+
+            renderActiveNode() {
+                this.syncTelemetry();
+                const node = MASTER_DATASET[this.state.index];
+
+                document.getElementById('runtime-category').innerText = `MÓDULO DE VERIFICAÇÃO ${String(this.state.index + 1).padStart(2, '0')} // ${node.category}`;
+                document.getElementById('runtime-topic').innerText = `ID::${node.topic.toUpperCase().replace(/\s/g, '_')}`;
+                document.getElementById('runtime-question').innerText = node.question;
+
+                document.getElementById('runtime-log').innerText = "";
+                document.getElementById('runtime-next').setAttribute('disabled', 'true');
+                document.getElementById('runtime-back').style.visibility = this.state.index > 0 ? "visible" : "hidden";
+
+                const staticBox = document.getElementById('runtime-static-box');
+                const dynamicBox = document.getElementById('runtime-dynamic-box');
+
+                if (node.type === "static") {
+                    dynamicBox.style.display = "none";
+                    staticBox.style.display = "grid";
+                    staticBox.innerHTML = "";
+
+                    const alpha = ["A", "B", "C", "D"];
+                    node.options.forEach((opt, idx) => {
+                        const btn = document.createElement('button');
+                        btn.className = "node-option";
+                        btn.innerHTML = `<span>${alpha[idx]}</span> ${opt}`;
+                        btn.onclick = () => this.evaluateStaticNode(alpha[idx], btn);
+                        
+                        if (this.state.history[this.state.index]) {
+                            this.freezeStaticDOM(btn, alpha[idx], node.answer);
+                        }
+                        staticBox.appendChild(btn);
+                    });
+                } else {
+                    staticBox.style.display = "none";
+                    dynamicBox.style.display = "flex";
+
+                    const field = document.getElementById('runtime-field');
+                    const submit = document.getElementById('runtime-submit');
+
+                    field.value = "";
+                    field.className = "input-core";
+                    field.placeholder = node.placeholder;
+                    field.removeAttribute('disabled');
+                    submit.removeAttribute('disabled');
+
+                    if (this.state.history[this.state.index]) {
+                        this.freezeDynamicDOM(field, submit);
+                    }
+                }
+            }
+
+            evaluateStaticNode(choice, element) {
+                const node = MASTER_DATASET[this.state.index];
+                const siblings = document.getElementById('runtime-static-box').querySelectorAll('.node-option');
+                const log = document.getElementById('runtime-log');
+
+                siblings.forEach(b => b.classList.add('frozen'));
+                this.state.history[this.state.index] = choice;
+
+                if (choice === node.answer) {
+                    AudioEngine.play('click');
+                    log.innerText = ">> INTEGRIDADE DA ASSINATURA: 100% CORRETA. DADOS CONSOLIDADOS.";
+                    log.style.color = "var(--neon-emerald)";
+                    element.classList.add('correct');
+                    this.state.score += 1000;
+                    this.state.hits++;
+                } else {
+                    AudioEngine.play('error');
+                    log.innerText = ">> VALIDAÇÃO FALHOU. INTEGRALIDADE DO REGISTRO FOI AFETADA.";
+                    log.style.color = "var(--neon-magenta)";
+                    element.classList.add('incorrect');
+                    siblings.forEach(b => {
+                        if (b.innerHTML.includes(`<span>${node.answer}</span>`)) b.classList.add('correct');
+                    });
+                    this.injectEntropy();
+                }
+
+                document.getElementById('runtime-next').removeAttribute('disabled');
+                this.writeCachedSession();
+                this.syncTelemetry();
+            }
+
+            commitDynamicToken() {
+                const node = MASTER_DATASET[this.state.index];
+                const field = document.getElementById('runtime-field');
+                const submit = document.getElementById('runtime-submit');
+                const log = document.getElementById('runtime-log');
+
+                const cleanInput = field.value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (!cleanInput) return;
+
+                field.setAttribute('disabled', 'true');
+                submit.setAttribute('disabled', 'true');
+                this.state.history[this.state.index] = cleanInput;
+
+                const match = node.tokens.some(t => {
+                    const normToken = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return cleanInput === normToken || cleanInput.includes(normToken);
+                });
+
+                if (match) {
+                    AudioEngine.play('click');
+                    log.innerText = ">> EQUIVALÊNCIA DE TOKEN CONSTATADA. TRANSFERÊNCIA FINALIZADA.";
+                    log.style.color = "var(--neon-emerald)";
+                    field.classList.add('correct');
+                    this.state.score += 1000;
+                    this.state.hits++;
+                } else {
+                    AudioEngine.play('error');
+                    log.innerText = `>> CONCORDÂNCIA RETORNOU ZERO. ASSINATURA ESPERADA: ${node.tokens[0].toUpperCase()}`;
+                    log.style.color = "var(--neon-magenta)";
+                    field.classList.add('incorrect');
+                    this.injectEntropy();
+                }
+
+                document.getElementById('runtime-next').removeAttribute('disabled');
+                this.writeCachedSession();
+                this.syncTelemetry();
+            }
+
+            freezeStaticDOM(element, currentPrefix, correctKey) {
+                element.classList.add('frozen');
+                const pastChoice = this.state.history[this.state.index];
+                if (currentPrefix === pastChoice) {
+                    element.classList.add(pastChoice === correctKey ? 'correct' : 'incorrect');
+                }
+                if (currentPrefix === correctKey && pastChoice !== correctKey) {
+                    element.classList.add('correct');
+                }
+                document.getElementById('runtime-next').removeAttribute('disabled');
+            }
+
+            freezeDynamicDOM(input, submitBtn) {
+                input.setAttribute('disabled', 'true');
+                submitBtn.setAttribute('disabled', 'true');
+                input.value = this.state.history[this.state.index];
+                input.classList.add('frozen');
+                document.getElementById('runtime-next').removeAttribute('disabled');
+            }
+
+            injectEntropy() {
+                this.state.entropy += 4.0;
+                if (this.state.entropy >= 100.0) {
+                    this.state.entropy = 100.0;
+                    this.terminateEngine(true);
+                }
+            }
+
+            traverseForward() {
+                if (this.state.index < MASTER_DATASET.length - 1) {
+                    this.state.index++;
+                    this.renderActiveNode();
+                } else {
+                    this.terminateEngine(false);
+                }
+                this.writeCachedSession();
+            }
+
+            traverseBack() {
+                if (this.state.index > 0) {
+                    this.state.index--;
+                    this.renderActiveNode();
+                }
+                this.writeCachedSession();
+            }
+
+            terminateEngine(forced) {
+                this.switchViewport('view-analytics');
+                this.clearCache();
+
+                const head = document.getElementById('analytics-header');
+                const profile = document.getElementById('res-profile');
+
+                if (forced) {
+                    AudioEngine.play('error');
+                    head.innerText = "OVERLOAD TERMINATION";
+                    head.style.color = "var(--neon-magenta)";
+                    profile.innerText = "SISTEMA ABORTADO POR ALTA ENTROPIA";
+                    profile.style.color = "var(--neon-magenta)";
+                } else {
+                    AudioEngine.play('success');
+                    head.innerText = "MÓDULO CONCLUÍDO";
+                    head.style.color = "var(--neon-emerald)";
+                    
+                    if (this.state.hits >= 26) { profile.innerText = "CHIEF KNOWLEDGE ARCHIVIST"; profile.style.color = "var(--neon-cyan)"; }
+                    else if (this.state.hits >= 16) { profile.innerText = "SENIOR CULTURAL ANALYST"; profile.style.color = "var(--neon-amber)"; }
+                    else { profile.innerText = "TEMPORARY GUEST EXT"; profile.style.color = "var(--text-body)"; }
+                }
+
+                document.getElementById('res-score').innerText = this.state.score + ' XP';
+                document.getElementById('res-entropy').innerText = this.state.entropy.toFixed(2) + '%';
+                document.getElementById('res-accuracy').innerText = `${this.state.hits} / 30`;
+            }
+
+            hardResetKernel() {
+                this.initDataModel();
+                this.clearCache();
+                this.switchViewport('view-intro');
+                document.getElementById('view-intro').querySelector('.subtitle-spec').innerText = "ENGINE CONFIGURATION VERIFICATION // SYSTEMS v6.0";
+                this.syncTelemetry();
+            }
+        }
+
+        const ApplicationEngine = new ArchitectureApplication();
+    </script>
+</body>
+</html>
